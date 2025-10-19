@@ -1,48 +1,63 @@
 import React, { useEffect } from 'react';
-import {
-    View,
-    Text,
-    TouchableOpacity,
-    StyleSheet,
-    Image
-} from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, Platform } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { GoogleAuthProvider, getAuth, signInWithCredential } from '@react-native-firebase/auth';
+import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 
-type Props = {
-    navigation: NativeStackNavigationProp<any>;
-}
+// Define navigation stack type
+type RootStackParamList = {
+    MainScreen: undefined;
+    SignUpScreen: undefined;
+    // Add other screens as needed
+};
 
-const SignUpScreen: React.FC<Props> = ({ navigation }) => {
-    const navigate = useNavigation();
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+
+const SignUpScreen = () => {
+    const navigation = useNavigation<NavigationProp>();
 
     const handleGoogleSignIn = async () => {
         try {
-            await GoogleSignin.hasPlayServices();
+            await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
             const userInfo = await GoogleSignin.signIn();
-            console.log("Google User Info", userInfo);
-            navigate.navigate('MainScreen');
-        } catch (err: any) {
-            if (err.code == statusCodes.SIGN_IN_CANCELLED) {
-                console.log("User Cancelled the login flow")
-            } else if (err.code == statusCodes.IN_PROGRESS) {
-                console.log("Sign is in already progress")
-            } else if (err.code == statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-                console.log("Play services not available or outdated");
-            } else {
-                console.log("Some other error:", err)
+            const idToken = userInfo.data.idToken;
+
+            if (!idToken) throw new Error('Google Sign-In failed: no idToken returned');
+
+            const credential = GoogleAuthProvider.credential(idToken);
+            const auth = getAuth();
+            await signInWithCredential(auth, credential);
+            console.log('Google Sign-In successful!');
+            navigation.navigate('MainScreen');
+        } catch (error: any) {
+            let errorMessage = 'An error occurred during Google Sign-In';
+            if (error.code) {
+                switch (error.code) {
+                    case statusCodes.SIGN_IN_CANCELLED:
+                        errorMessage = 'Sign-in was cancelled';
+                        break;
+                    case statusCodes.IN_PROGRESS:
+                        errorMessage = 'Sign-in is already in progress';
+                        break;
+                    case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
+                        errorMessage = 'Google Play Services is not available';
+                        break;
+                    default:
+                        errorMessage = error.message || errorMessage;
+                }
             }
+            Alert.alert('Google Sign-In Failed', errorMessage);
         }
-    }
+    };
 
     useEffect(() => {
         GoogleSignin.configure({
-            webClientId: '517862917117-1mmne6ckir35ck4ps2tfoeul5b8duu06.apps.googleusercontent.com',
-            offlineAccess: false
-        })
-    })
+            webClientId: process.env.GOOGLE_WEB_CLIENT_ID || '488934875185-9lu62fnjjdmocg0p37ue4jjhbf2q6t6n.apps.googleusercontent.com',
+            offlineAccess: false,
+        });
+    }, []);
 
     return (
         <View style={styles.container}>
@@ -50,6 +65,8 @@ const SignUpScreen: React.FC<Props> = ({ navigation }) => {
             <TouchableOpacity
                 style={styles.backButton}
                 onPress={() => navigation.goBack()}
+                accessibilityLabel="Go back"
+                accessibilityRole="button"
             >
                 <Ionicons name="arrow-back" size={24} color="#000" />
             </TouchableOpacity>
@@ -67,37 +84,38 @@ const SignUpScreen: React.FC<Props> = ({ navigation }) => {
                 style={styles.googleButton}
                 onPress={handleGoogleSignIn}
                 activeOpacity={0.8}
+                accessibilityLabel="Continue with Google"
+                accessibilityRole="button"
             >
                 <Ionicons name="logo-google" size={20} color="#DB4437" style={{ marginRight: 10 }} />
                 <Text style={styles.googleText}>Continue with Google</Text>
             </TouchableOpacity>
         </View>
-    )
-}
+    );
+};
 
 export default SignUpScreen;
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#fff",
+        backgroundColor: '#fff',
         paddingHorizontal: 24,
         justifyContent: 'center',
-        alignItems: 'center'
+        alignItems: 'center',
     },
     backButton: {
         position: 'absolute',
         top: 50,
-        left: 20
+        left: 20,
     },
     title: {
         fontSize: 25,
         fontWeight: '600',
-        marginTop: -330,
         marginBottom: 20,
-        color: "#222",
+        color: '#222',
         textAlign: 'center',
-        lineHeight: 35
+        lineHeight: 35,
     },
     welcomeText: {
         fontSize: 25,
@@ -106,8 +124,7 @@ const styles = StyleSheet.create({
         color: '#333',
         lineHeight: 35,
         marginBottom: 50,
-        marginTop: 100,
-        paddingHorizontal: 10
+        paddingHorizontal: 10,
     },
     googleButton: {
         flexDirection: 'row',
@@ -123,20 +140,22 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
         paddingHorizontal: 40,
         marginBottom: 20,
-
-        // Shadow for iOS
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 2,
-
-        // Shadow for Android
-        elevation: 3,
+        ...Platform.select({
+            ios: {
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.2,
+                shadowRadius: 2,
+            },
+            android: {
+                elevation: 3,
+            },
+        }),
     },
     googleText: {
         fontSize: 15,
         color: '#000',
         fontWeight: '500',
         lineHeight: 24,
-    }
-})
+    },
+});

@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "488934875185",
+    "project_id": "wellvantage-fd338",
+    "storage_bucket": "wellvantage-fd338.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:488934875185:android:7fb04ec29b9009aa10b510",
+        "android_client_info": {
+          "package_name": "com.wellvantage"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "488934875185-d58935cmuq1ku0nn5fo2r56uio9r91r4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.wellvantage",
+            "certificate_hash": "8fa518dc6c5842d09ed1c42d2f37b4265c305554"
+          }
+        },
+        {
+          "client_id": "488934875185-9lu62fnjjdmocg0p37ue4jjhbf2q6t6n.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBQElbg7hM1woIpNZmkyL4_OpFDttajduU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "488934875185-9lu62fnjjdmocg0p37ue4jjhbf2q6t6n.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
